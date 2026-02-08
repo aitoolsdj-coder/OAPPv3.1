@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OAPP v3</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#003264">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <!-- PWA iOS settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="OAPP v3">
+</head>
+
+<body>
+
+    <div id="app">
+        <!-- Zapotrzebowania View -->
+        <div id="view-orders" class="view active">
+            <header>
+                <h1>Zapotrzebowania</h1>
+                <button id="refresh-orders" class="refresh-btn" aria-label="Odśwież">↻</button>
+            </header>
+
+            <div class="content">
+                <section class="add-form-section">
+                    <button class="toggle-form-btn" onclick="toggleForm('orders-form-container')">+ Nowe
+                        Zapotrzebowanie</button>
+                    <div id="orders-form-container" class="form-container hidden">
+                        <form id="orders-form">
+                            <div class="form-group">
+                                <input type="text" name="co" placeholder="Co potrzeba? *" required>
+                            </div>
+                            <div class="form-row">
+                                <input type="text" name="ilosc" placeholder="Ilość *" required>
+                                <input type="text" name="producent" placeholder="Producent">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="autor" class="input-autor" placeholder="Autor (opcjonalnie)">
+                            </div>
+                            <textarea name="uwagi" placeholder="Uwagi (opcjonalnie)"></textarea>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label
+                                    style="font-size: 0.8rem; color: rgba(255,255,255,0.7); display: block; margin-bottom: 5px;">Zdjęcie
+                                    (opcjonalnie):</label>
+                                <input type="file" name="attachment" accept="image/*">
+                            </div>
+                            <button type="submit" class="submit-btn">Dodaj</button>
+                        </form>
+                    </div>
+                </section>
+
+                <div class="kanban-board" id="orders-board">
+                    <!-- Columns will be injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Pytania View -->
+        <div id="view-items" class="view">
+            <header>
+                <h1>Pytania</h1>
+                <button id="refresh-items" class="refresh-btn" aria-label="Odśwież">↻</button>
+            </header>
+
+            <div class="content">
+                <section class="add-form-section">
+                    <button class="toggle-form-btn" onclick="toggleForm('items-form-container')">+ Nowe Pytanie</button>
+                    <div id="items-form-container" class="form-container hidden">
+                        <form id="items-form">
+                            <div class="form-group">
+                                <input type="text" name="opis" placeholder="Treść pytania *" required>
+                            </div>
+                            <div class="form-row">
+                                <input type="date" name="termin_odpowiedzi" placeholder="Termin">
+                                <select name="priorytet">
+                                    <option value="Niski">Niski</option>
+                                    <option value="Średni" selected>Średni</option>
+                                    <option value="Wysoki">Wysoki</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="autor" class="input-autor" placeholder="Autor (opcjonalnie)">
+                            </div>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label
+                                    style="font-size: 0.8rem; color: rgba(255,255,255,0.7); display: block; margin-bottom: 5px;">Zdjęcie
+                                    (opcjonalnie):</label>
+                                <input type="file" name="attachment" accept="image/*">
+                            </div>
+                            <button type="submit" class="submit-btn">Dodaj</button>
+                        </form>
+                    </div>
+                </section>
+
+                <div class="kanban-board" id="items-board">
+                    <!-- Columns will be injected by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Pliki View -->
+        <div id="view-docs" class="view">
+            <header>
+                <h1>Pliki (Drive)</h1>
+            </header>
+            <div class="content docs-content">
+                <div class="drive-embed-container">
+                    <iframe src="https://drive.google.com/embeddedfolderview?id=1iURUi0OKIleXiPBbYsfZSKutvIRBJWmS#grid"
+                        class="drive-frame" title="Pliki Google Drive" allowfullscreen>
+                    </iframe>
+                </div>
+                <a href="https://drive.google.com/drive/folders/1iURUi0OKIleXiPBbYsfZSKutvIRBJWmS?usp=sharing"
+                    target="_blank" class="drive-btn">
+                    📂 Otwórz folder w Google Drive
+                </a>
+            </div>
+        </div>
+
+        <!-- Chat AI View -->
+        <div id="view-chat" class="view">
+            <header>
+                <h1>Chat AI (NotebookLM)</h1>
+            </header>
+            <div class="content chat-content">
+                <p class="section-hint">Twoje notesy:</p>
+                <div id="notebooks-list-display" class="notebooks-grid">
+                    <!-- Buttons will be injected here -->
+                </div>
+                <div class="empty-state-hint" id="notebooks-empty-hint" style="display:none;">
+                    Brak notesów. Dodaj je w Ustawieniach.
+                </div>
+            </div>
+        </div>
+
+        <!-- Ustawienia View -->
+        <div id="view-settings" class="view">
+            <header>
+                <h1>Ustawienia</h1>
+            </header>
+            <div class="content settings-content">
+
+                <!-- User Section -->
+                <div class="settings-card">
+                    <h2>👤 Użytkownik</h2>
+                    <div class="setting-group">
+                        <label for="user-name-input">Podpis (Imię/Nazwisko)</label>
+                        <input type="text" id="user-name-input" placeholder="Wpisz swoje dane...">
+                        <p class="setting-hint">To pole będzie automatycznie wypełniać "Autora" w formularzach.</p>
+                        <button id="save-user-btn" class="save-settings-btn primary">Zapisz podpis</button>
+                    </div>
+                </div>
+
+                <!-- Connection Section -->
+                <div class="settings-card">
+                    <h2>📡 Połączenie</h2>
+                    <div class="setting-group">
+                        <div class="connection-status-area">
+                            <button id="test-connection-btn" class="test-conn-btn">Testuj połączenie z n8n</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notebooks Section -->
+                <div class="settings-card">
+                    <h2>🤖 Notebooki AI</h2>
+                    <p class="setting-hint">Dodaj linki do swoich notesów NotebookLM, aby mieć do nich szybki dostęp w
+                        zakładce Chat AI.</p>
+
+                    <ul id="settings-notebooks-list" class="settings-list"></ul>
+
+                    <button class="add-link-btn" onclick="addNewNotebook()">+ Dodaj Notebook</button>
+                </div>
+
+                <!-- Links Section -->
+                <div class="settings-card">
+                    <h2>🔗 Ważne Linki</h2>
+                    <ul id="links-list" class="settings-list"></ul>
+                    <button class="add-link-btn" onclick="addNewLink()">+ Dodaj Link</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-target="view-orders">
+                <span class="icon">📦</span>
+                <span class="label">Zapotrzebowania</span>
+            </button>
+            <button class="nav-btn" data-target="view-items">
+                <span class="icon">❓</span>
+                <span class="label">Pytania</span>
+            </button>
+            <button class="nav-btn" data-target="view-docs">
+                <span class="icon">📂</span>
+                <span class="label">Pliki</span>
+            </button>
+            <button class="nav-btn" data-target="view-chat">
+                <span class="icon">🤖</span>
+                <span class="label">Chat AI</span>
+            </button>
+            <button class="nav-btn" data-target="view-settings">
+                <span class="icon">⚙️</span>
+                <span class="label">Ustawienia</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="storage.js"></script>
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => {
+                        console.log('[OAPP] SW registered!', reg);
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('[OAPP] New version initialized');
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => console.log('[OAPP] SW registration failed', err));
+            });
+        }
+    </script>
+</body>
+
+</html>
