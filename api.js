@@ -123,14 +123,14 @@ window.API = {
         const formData = new FormData();
         formData.append('file', file);
         // Returns { link: "..." }
-        return this.upload('https://jakubdworak.app.n8n.cloud/webhook/be198e7e-bfc2-429a-8065-b15a46ffe61c', formData);
+        return this.upload('https://jakubdworak.app.n8n.cloud/webhook/zdj_zapotrz', formData);
     },
 
     async uploadItemImage(file) {
         const formData = new FormData();
         formData.append('file', file);
         // Returns { link: "..." }
-        return this.upload('https://jakubdworak.app.n8n.cloud/webhook/1049fd73-f7ae-49a0-9a64-086c4270b224', formData);
+        return this.upload('https://jakubdworak.app.n8n.cloud/webhook/zdj_pytania', formData);
     }
 };
 

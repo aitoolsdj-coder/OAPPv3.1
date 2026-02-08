@@ -483,9 +483,9 @@ if (Elements.ordersForm) {
                     try {
                         const uploadRes = await window.API.uploadOrderImage(file);
                         // Expecting { link: "url" } or just url string
-                        if (uploadRes.link) data.zdjecie = uploadRes.link;
-                        else if (uploadRes.url) data.zdjecie = uploadRes.url;
-                        else if (uploadRes.message) data.zdjecie = uploadRes.message;
+                        if (uploadRes.link) data.foto = uploadRes.link;
+                        else if (uploadRes.url) data.foto = uploadRes.url;
+                        else if (uploadRes.message) data.foto = uploadRes.message;
 
                         showToast('Zdjęcie wysłane. Wysyłanie danych...');
                     } catch (uploadErr) {
@@ -542,9 +542,9 @@ if (Elements.itemsForm) {
                     showToast('Wysyłanie zdjęcia...');
                     try {
                         const uploadRes = await window.API.uploadItemImage(file);
-                        if (uploadRes.link) data.zdjecie = uploadRes.link;
-                        else if (uploadRes.url) data.zdjecie = uploadRes.url;
-                        else if (uploadRes.message) data.zdjecie = uploadRes.message;
+                        if (uploadRes.link) data.foto = uploadRes.link;
+                        else if (uploadRes.url) data.foto = uploadRes.url;
+                        else if (uploadRes.message) data.foto = uploadRes.message;
 
                         showToast('Zdjęcie wysłane. Wysyłanie danych...');
                     } catch (uploadErr) {
