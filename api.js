@@ -94,15 +94,15 @@ window.API = {
                 throw new Error(`Upload failed: ${response.status}`);
             }
 
-            // Expecting JSON: { "link": "https://..." }
+            // Expecting JSON from Google Drive/n8n
             const result = await response.json();
-            if (result && result.link) {
-                return result.link;
+
+            // Strict check for webViewLink as requested
+            if (result && result.webViewLink) {
+                return result.webViewLink;
             } else {
-                // Fallback if n8n returns just the text/link directly
-                console.warn('Unexpected JSON structure, trying to use text response as link if valid URL');
-                // This might need adjustment based on actual n8n response if it's not JSON
-                throw new Error('No link in response');
+                console.warn('Unexpected JSON structure:', result);
+                throw new Error('No webViewLink found in upload response');
             }
         } catch (error) {
             clearTimeout(id);
