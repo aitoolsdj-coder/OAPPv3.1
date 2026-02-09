@@ -491,7 +491,7 @@ if (Elements.ordersForm) {
                 submitBtn.textContent = 'Wysyłanie zdjęcia...';
 
                 const imageUrl = await window.API.uploadFile(file, 'order');
-                data.zdjecie = imageUrl; // Add link to data
+                data.foto = imageUrl; // Add link to data (field name: foto)
 
                 submitBtn.textContent = 'Wysyłanie danych...';
             } catch (err) {
@@ -561,7 +561,7 @@ if (Elements.itemsForm) {
                 submitBtn.textContent = 'Wysyłanie zdjęcia...';
 
                 const imageUrl = await window.API.uploadFile(file, 'item');
-                data.zdjecie = imageUrl; // Add link to data
+                data.foto = imageUrl; // Add link to data (field name: foto)
 
                 submitBtn.textContent = 'Wysyłanie danych...';
             } catch (err) {
