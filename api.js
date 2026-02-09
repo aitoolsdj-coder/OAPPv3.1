@@ -65,6 +65,51 @@ window.API = {
         }
     },
 
+    // --- Image Upload ---
+    async uploadFile(file, type) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        let url;
+        if (type === 'order') {
+            url = 'https://jakubdworak.app.n8n.cloud/webhook/zdj_zapotrz';
+        } else if (type === 'item') {
+            url = 'https://jakubdworak.app.n8n.cloud/webhook/zdj_pytania';
+        } else {
+            throw new Error('Unknown upload type');
+        }
+
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), 30000); // 30 seconds for upload
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal
+            });
+            clearTimeout(id);
+
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.status}`);
+            }
+
+            // Expecting JSON: { "link": "https://..." }
+            const result = await response.json();
+            if (result && result.link) {
+                return result.link;
+            } else {
+                // Fallback if n8n returns just the text/link directly
+                console.warn('Unexpected JSON structure, trying to use text response as link if valid URL');
+                // This might need adjustment based on actual n8n response if it's not JSON
+                throw new Error('No link in response');
+            }
+        } catch (error) {
+            clearTimeout(id);
+            throw error;
+        }
+    },
+
     // --- Zapotrzebowania Methods ---
     async fetchOrders() {
         return this.request(this.endpoints.orders.list);
@@ -89,48 +134,6 @@ window.API = {
 
     async updateItemStatus(id, status) {
         return this.request(this.endpoints.items.status, 'POST', { id, status });
-    },
-
-    // --- Upload Methods ---
-    async upload(url, formData) {
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData,
-                signal: controller.signal
-                // Content-Type is set automatically by fetch for FormData
-            });
-            clearTimeout(id);
-
-            if (!response.ok) {
-                throw new Error(`Upload Error ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            clearTimeout(id);
-            if (error.name === 'AbortError') {
-                throw new Error(`Timeout (${TIMEOUT_MS}ms)`);
-            }
-            throw error;
-        }
-    },
-
-    async uploadOrderImage(file) {
-        const formData = new FormData();
-        formData.append('file', file);
-        // Returns { link: "..." }
-        return this.upload('https://jakubdworak.app.n8n.cloud/webhook/zdj_zapotrz', formData);
-    },
-
-    async uploadItemImage(file) {
-        const formData = new FormData();
-        formData.append('file', file);
-        // Returns { link: "..." }
-        return this.upload('https://jakubdworak.app.n8n.cloud/webhook/zdj_pytania', formData);
     }
 };
 

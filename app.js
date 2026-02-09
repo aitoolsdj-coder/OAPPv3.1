@@ -442,6 +442,21 @@ if (Elements.testConnectionBtn) {
     });
 }
 
+// File Input Display Logic
+document.querySelectorAll('input[type="file"]').forEach(input => {
+    input.addEventListener('change', (e) => {
+        const spanId = e.target.id + '-name';
+        const span = document.getElementById(spanId);
+        if (span) {
+            if (e.target.files && e.target.files[0]) {
+                span.textContent = e.target.files[0].name;
+            } else {
+                span.textContent = '';
+            }
+        }
+    });
+});
+
 // 3. Refresh Buttons
 const refreshOrdersBtn = document.getElementById('refresh-orders');
 if (refreshOrdersBtn) refreshOrdersBtn.addEventListener('click', () => syncOrders(false));
@@ -450,21 +465,47 @@ const refreshItemsBtn = document.getElementById('refresh-items');
 if (refreshItemsBtn) refreshItemsBtn.addEventListener('click', () => syncItems(false));
 
 // 4. Forms
+// 4. Forms
 if (Elements.ordersForm) {
     Elements.ordersForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitBtn = e.target.querySelector('.submit-btn');
+        const originalBtnText = submitBtn.textContent;
+
         const formData = new FormData(e.target);
-
-        // Handle file separately
-        const file = formData.get('attachment');
-
-        // Prepare data object, removing the file object
         const data = Object.fromEntries(formData.entries());
-        delete data.attachment;
+        const fileInput = document.getElementById('order-file');
+        const file = fileInput && fileInput.files[0];
 
         if (!data.co.trim()) return;
 
-        // Optimistic update (without image link initially)
+        // Image Upload Logic
+        if (file) {
+            if (!navigator.onLine) {
+                showToast('Błąd: Nie można wysłać zdjęcia offline!');
+                return;
+            }
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Wysyłanie zdjęcia...';
+
+                const imageUrl = await window.API.uploadFile(file, 'order');
+                data.zdjecie = imageUrl; // Add link to data
+
+                submitBtn.textContent = 'Wysyłanie danych...';
+            } catch (err) {
+                console.error('Image upload error:', err);
+                showToast(`Błąd wysyłania zdjęcia: ${err.message}`);
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+                return; // Block submission
+            }
+        }
+
+        // Remove file object from JSON data just in case
+        delete data.file;
+
         const newItem = { id: `local-${Date.now()}`, ...data, status: 'Nowe' };
 
         const orders = Storage.getOrders();
@@ -473,36 +514,21 @@ if (Elements.ordersForm) {
         renderKanban(Elements.ordersBoard, orders, 'order');
 
         e.target.reset();
+        if (document.getElementById('order-file-name')) document.getElementById('order-file-name').textContent = '';
         toggleForm('orders-form-container');
 
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+
         if (navigator.onLine) {
+            showToast('Wysyłanie...');
             try {
-                // Step 1: Upload Image if present
-                if (file && file.size > 0) {
-                    showToast('Wysyłanie zdjęcia...');
-                    try {
-                        const uploadRes = await window.API.uploadOrderImage(file);
-                        // Expecting { link: "url" } or just url string
-                        if (uploadRes.link) data.foto = uploadRes.link;
-                        else if (uploadRes.url) data.foto = uploadRes.url;
-                        else if (uploadRes.message) data.foto = uploadRes.message;
-
-                        showToast('Zdjęcie wysłane. Wysyłanie danych...');
-                    } catch (uploadErr) {
-                        console.error('Upload failed', uploadErr);
-                        showToast('Błąd zdjęcia. Wysyłam same dane.');
-                    }
-                } else {
-                    showToast('Wysyłanie...');
-                }
-
-                // Step 2: Send Data
                 await window.API.addOrder(data);
                 showToast('Dodano pomyślnie.');
                 syncOrders(true);
             } catch (err) {
-                showToast('Błąd wysyłania. Zapisano lokalnie.');
-                console.error(err);
+                showToast('Błąd wysyłania danych. Zapisano lokalnie.');
             }
         } else {
             showToast('Offline. Zapisano lokalnie (bez zdjęcia).');
@@ -513,18 +539,43 @@ if (Elements.ordersForm) {
 if (Elements.itemsForm) {
     Elements.itemsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitBtn = e.target.querySelector('.submit-btn');
+        const originalBtnText = submitBtn.textContent;
+
         const formData = new FormData(e.target);
-
-        // Handle file
-        const file = formData.get('attachment');
-
-        // Prepare data
         const data = Object.fromEntries(formData.entries());
-        delete data.attachment;
+        const fileInput = document.getElementById('item-file');
+        const file = fileInput && fileInput.files[0];
 
         if (!data.opis.trim()) return;
 
-        // Optimistic update
+        // Image Upload Logic
+        if (file) {
+            if (!navigator.onLine) {
+                showToast('Błąd: Nie można wysłać zdjęcia offline!');
+                return;
+            }
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Wysyłanie zdjęcia...';
+
+                const imageUrl = await window.API.uploadFile(file, 'item');
+                data.zdjecie = imageUrl; // Add link to data
+
+                submitBtn.textContent = 'Wysyłanie danych...';
+            } catch (err) {
+                console.error('Image upload error:', err);
+                showToast(`Błąd wysyłania zdjęcia: ${err.message}`);
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+                return; // Block submission
+            }
+        }
+
+        // Remove file object from JSON data
+        delete data.file;
+
         const newItem = { id: `local-${Date.now()}`, ...data, status: 'Nowe' };
 
         const items = Storage.getItems();
@@ -533,35 +584,21 @@ if (Elements.itemsForm) {
         renderKanban(Elements.itemsBoard, items, 'item');
 
         e.target.reset();
+        if (document.getElementById('item-file-name')) document.getElementById('item-file-name').textContent = '';
         toggleForm('items-form-container');
 
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+
         if (navigator.onLine) {
+            showToast('Wysyłanie...');
             try {
-                // Step 1: Upload Image
-                if (file && file.size > 0) {
-                    showToast('Wysyłanie zdjęcia...');
-                    try {
-                        const uploadRes = await window.API.uploadItemImage(file);
-                        if (uploadRes.link) data.foto = uploadRes.link;
-                        else if (uploadRes.url) data.foto = uploadRes.url;
-                        else if (uploadRes.message) data.foto = uploadRes.message;
-
-                        showToast('Zdjęcie wysłane. Wysyłanie danych...');
-                    } catch (uploadErr) {
-                        console.error('Upload failed', uploadErr);
-                        showToast('Błąd zdjęcia. Wysyłam same dane.');
-                    }
-                } else {
-                    showToast('Wysyłanie...');
-                }
-
-                // Step 2: Send Data
                 await window.API.addItem(data);
                 showToast('Dodano pomyślnie.');
                 syncItems(true);
             } catch (err) {
-                showToast('Błąd wysyłania. Zapisano lokalnie.');
-                console.error(err);
+                showToast('Błąd wysyłania danych. Zapisano lokalnie.');
             }
         } else {
             showToast('Offline. Zapisano lokalnie (bez zdjęcia).');

@@ -593,3 +593,41 @@ textarea {
         transform: translateY(0);
     }
 }
+
+/* File Upload Styles */
+.file-upload-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.file-upload-label {
+    background-color: var(--card-bg); /* Use card background or similar */
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.file-upload-label:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+input[type="file"] {
+    display: none; /* Hide default input */
+}
+
+.file-name {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
